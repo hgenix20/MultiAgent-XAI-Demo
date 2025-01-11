@@ -2,45 +2,92 @@ import streamlit as st
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 @st.cache_resource
-def load_model():
-    tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
-    model = AutoModelForCausalLM.from_pretrained("distilgpt2")
-    return tokenizer, model
+def load_agentA():
+    # e.g., DistilGPT2
+    tokenizerA = AutoTokenizer.from_pretrained("distilgpt2")
+    modelA = AutoModelForCausalLM.from_pretrained("distilgpt2")
+    return tokenizerA, modelA
 
-tokenizer, model = load_model()
+@st.cache_resource
+def load_agentB():
+    # e.g., GPT-Neo 125M
+    tokenizerB = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
+    modelB = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
+    return tokenizerB, modelB
 
-st.title("Multi-Agent Dialogue Simulator")
-user_input = st.text_input("Enter a scenario or question:")
+tokenizerA, modelA = load_agentA()
+tokenizerB, modelB = load_agentB()
 
-if st.button("Generate Collaboration"):
-    # Create a custom prompt with two roles
-    prompt = f"""
-    The following is a conversation between two agents:
-    Agent A: A Lean Six Sigma process re-engineer.
-    Agent B: An AI/data scientist.
+st.title("True Multi-Agent Conversation")
 
-    They discuss how to solve the user's challenge:
+# We store the conversation as a list of (speaker, text).
+if "conversation" not in st.session_state:
+    st.session_state.conversation = []
 
-    User scenario: {user_input}
+user_input = st.text_input("Enter a question or scenario:")
 
-    Agent A: Let's break down the problem step by step.
-    Agent B:
+if st.button("Start/Continue Conversation"):
+    # 1) The user’s prompt goes to Agent A first.
+    if len(st.session_state.conversation) == 0:
+        st.session_state.conversation.append(("User", user_input))
+    else:
+        # If conversation is ongoing, you can treat this user_input differently, 
+        # or ignore if you want to keep the user out after the initial scenario.
+        st.session_state.conversation.append(("User", user_input))
+
+    # --- AGENT A Step ---
+    agentA_text = generate_response(
+        agent_name="Agent A",
+        model=modelA,
+        tokenizer=tokenizerA,
+        conversation=st.session_state.conversation
+    )
+    st.session_state.conversation.append(("Agent A", agentA_text))
+
+    # --- AGENT B Step ---
+    agentB_text = generate_response(
+        agent_name="Agent B",
+        model=modelB,
+        tokenizer=tokenizerB,
+        conversation=st.session_state.conversation
+    )
+    st.session_state.conversation.append(("Agent B", agentB_text))
+
+# Display the entire conversation so far
+for speaker, text in st.session_state.conversation:
+    st.markdown(f"**{speaker}:** {text}")
+
+
+def generate_response(agent_name, model, tokenizer, conversation):
     """
+    Takes the entire conversation as context, plus the agent name, 
+    and runs a single inference call for that agent.
+    """
+    # 1) Build a textual prompt from conversation
+    # e.g. A simple approach: just concatenate everything
+    #     focusing on the last few messages to avoid token limit issues
+    prompt_text = build_prompt(conversation, agent_name)
 
-    # Generate the conversation
-    inputs = tokenizer.encode(prompt, return_tensors="pt")
+    inputs = tokenizer.encode(prompt_text, return_tensors="pt")
     outputs = model.generate(
-        inputs, 
-        max_length=300,
-        min_length=50, 
+        inputs,
+        max_length=200,
         temperature=0.7,
         do_sample=True,
-        top_p=0.9,
-        repetition_penalty=1.2
+        top_p=0.9
     )
-    raw_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-    # Post-process to split or isolate Agent B's portion
-    # (For simplicity, we'll just display raw_text)
-    st.markdown("**Conversation**:")
-    st.write(raw_text)
+
+def build_prompt(conversation, agent_name):
+    """
+    Construct a single prompt that includes the entire conversation so far,
+    labeling each line with speaker, and ends with the new agent's label.
+    """
+    text_blocks = []
+    for speaker, text in conversation:
+        text_blocks.append(f"{speaker}: {text}")
+
+    # Now add the new agent's label at the end, so the model continues from there
+    text_blocks.append(f"{agent_name}:")
+    return "\n".join(text_blocks)
