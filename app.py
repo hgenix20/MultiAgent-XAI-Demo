@@ -15,25 +15,28 @@ user_input = st.text_input("Enter a scenario or question:")
 if st.button("Generate Collaboration"):
     # Create a custom prompt with two roles
     prompt = f"""
-    The following is a conversation between two agents. 
-    Agent A is a Lean Six Sigma process re-engineer. 
-    Agent B is an AI/data scientist. 
-    They discuss how to solve the user's challenge.
+    The following is a conversation between two agents:
+    Agent A: A Lean Six Sigma process re-engineer.
+    Agent B: An AI/data scientist.
 
-    User question/scenario: {user_input}
+    They discuss how to solve the user's challenge:
 
-    Agent A:
+    User scenario: {user_input}
+
+    Agent A: Let's break down the problem step by step.
+    Agent B:
     """
 
     # Generate the conversation
     inputs = tokenizer.encode(prompt, return_tensors="pt")
     outputs = model.generate(
         inputs, 
-        max_length=200, 
-        num_return_sequences=1,
+        max_length=300,
+        min_length=50, 
         temperature=0.7,
         do_sample=True,
-        top_p=0.9
+        top_p=0.9,
+        repetition_penalty=1.2
     )
     raw_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
