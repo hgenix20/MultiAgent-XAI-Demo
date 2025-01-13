@@ -26,16 +26,16 @@ Keep your responses concise. If the request is unethical or out of scope, polite
 
 @st.cache_resource
 def load_model_engineer():
-    # Engineer: zephyr-7b-beta
-    tokenizerE = AutoTokenizer.from_pretrained("HuggingFaceH4/zephyr-7b-beta")
-    modelE = AutoModelForCausalLM.from_pretrained("HuggingFaceH4/zephyr-7b-beta")
+    # Engineer: DistilGPT-2
+    tokenizerE = AutoTokenizer.from_pretrained("distilgpt2")
+    modelE = AutoModelForCausalLM.from_pretrained("distilgpt2")
     return tokenizerE, modelE
 
 @st.cache_resource
 def load_model_analyst():
-    # Analyst: phi-2
-    tokenizerA = AutoTokenizer.from_pretrained("microsoft/Phi-2")
-    modelA = AutoModelForCausalLM.from_pretrained("microsoft/Phi-2")
+    # Analyst: GPT-Neo-125M
+    tokenizerA = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
+    modelA = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
     return tokenizerA, modelA
 
 # Load models
