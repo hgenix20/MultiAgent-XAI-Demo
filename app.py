@@ -33,8 +33,8 @@ Keep your responses concise. If the request is unethical or out of scope, polite
 @st.cache_resource
 def load_model_controller():
     # Controller: microsoft/Phi-3-mini-4k-instruct
-    tokenizerC = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct", trust_remote_code=True)
-    modelC = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3-mini-4k-instruct", trust_remote_code=True)
+    tokenizerC = AutoTokenizer.from_pretrained("chavinlo/gpt4-alpaca")
+    modelC = AutoModelForCausalLM.from_pretrained("chavinlo/gpt4-alpaca")
     return tokenizerC, modelC
 
 @st.cache_resource
