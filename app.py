@@ -37,15 +37,17 @@ def generate_engineer_response(user_text, tokenizer, model):
     Provide a technical approach or solution.
     
     """
-    inputs = tokenizer.encode(prompt, return_tensors="pt")
+    inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
-        inputs,
+        inputs["input_ids"],
+        attention_mask=inputs["attention_mask"],
         max_new_tokens=100,  # Generate up to 100 new tokens
         temperature=0.7,
         do_sample=True,
         top_p=0.9,
         repetition_penalty=1.3,
-        no_repeat_ngram_size=2
+        no_repeat_ngram_size=2,
+        pad_token_id=tokenizer.eos_token_id
     )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
@@ -59,15 +61,17 @@ Engineer provided the following: {engineer_output}
 Provide an approach or solution from a data-centric perspective.
 
 """
-    inputs = tokenizer.encode(prompt, return_tensors="pt")
+    inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
-        inputs,
+        inputs["input_ids"],
+        attention_mask=inputs["attention_mask"],
         max_new_tokens=100,  # Generate up to 100 new tokens
         temperature=0.7,
         do_sample=True,
         top_p=0.9,
         repetition_penalty=1.3,
-        no_repeat_ngram_size=2
+        no_repeat_ngram_size=2,
+        pad_token_id=tokenizer.eos_token_id
     )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
