@@ -1,6 +1,6 @@
 import streamlit as st
 
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, pipeline
 
 try:
     config = AutoConfig.from_pretrained("microsoft/phi-4", trust_remote_code=True)
@@ -41,9 +41,11 @@ Keep your responses concise. If the request is unethical or out of scope, polite
 @st.cache_resource
 def load_model_controller():
     # Controller: microsoft/phi-4
+    pipe = pipeline
+    pipe = pipeline("text-generation", model="microsoft/phi-4", trust_remote_code=True)
     tokenizerC = AutoTokenizer.from_pretrained("microsoft/phi-4", trust_remote_code=True)
     modelC = AutoModelForCausalLM.from_pretrained("microsoft/phi-4", trust_remote_code=True)
-    return tokenizerC, modelC
+    return tokenizerC, modelC, pipe
 
 @st.cache_resource
 def load_model_engineer():
