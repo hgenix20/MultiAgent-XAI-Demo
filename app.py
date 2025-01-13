@@ -71,6 +71,16 @@ Provide an approach or solution from a data-centric perspective.
     )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
+def summarize_conversation(conversation):
+    """
+    Summarize the entire conversation to produce a comprehensive plan.
+    """
+    summary = "Here is the summarized plan based on the discussion:\n"
+    for speaker, text in conversation:
+        if speaker != "User":
+            summary += f"- {speaker}: {text}\n"
+    return summary
+
 ##############################################################################
 #                         STREAMLIT APP
 ##############################################################################
@@ -124,8 +134,14 @@ if st.button("Start/Continue Conversation"):
             )
             st.session_state.conversation.append(("Analyst", analyst_resp))
 
+        # Generate the summary after the conversation
+        final_plan = summarize_conversation(st.session_state.conversation)
+        st.session_state.conversation.append(("Summary", final_plan))
+
 for speaker, text in st.session_state.conversation:
     if speaker == "User":
+        st.markdown(f"**{speaker}:** {text}")
+    elif speaker == "Summary":
         st.markdown(f"**{speaker}:** {text}")
     else:
         st.markdown(f"<div style='display:none'>{speaker}: {text}</div>", unsafe_allow_html=True)
