@@ -40,10 +40,9 @@ Keep your responses concise. If the request is unethical or out of scope, polite
 @st.cache_resource
 def load_model_controller():
     # Controller: microsoft/Phi-3-mini-4k-instruct
-    pipe = pipeline("text-generation", model="microsoft/Phi-3-mini-4k-instruct", trust_remote_code=True)
     tokenizerC = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct", trust_remote_code=True)
     modelC = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3-mini-4k-instruct", trust_remote_code=True)
-    return tokenizerC, modelC, pipe
+    return tokenizerC, modelC
 
 @st.cache_resource
 def load_model_engineer():
