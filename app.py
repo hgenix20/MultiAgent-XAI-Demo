@@ -32,23 +32,23 @@ Keep your responses concise. If the request is unethical or out of scope, polite
 
 @st.cache_resource
 def load_model_controller():
-    # Controller: microsoft/Phi-3-mini-4k-instruct
-    tokenizerC = AutoTokenizer.from_pretrained("chavinlo/gpt4-alpaca")
-    modelC = AutoModelForCausalLM.from_pretrained("chavinlo/gpt4-alpaca")
+    # Controller: gpt-neo-1.3b
+    tokenizerC = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-1.3B")
+    modelC = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-1.3B")
     return tokenizerC, modelC
 
 @st.cache_resource
 def load_model_engineer():
-    # Engineer: EleutherAI/gpt-neo-1.3B
-    tokenizerE = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-1.3B")
-    modelE = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-1.3B")
+    # Engineer: phi-2
+    tokenizerE = AutoTokenizer.from_pretrained("microsoft/Phi-2")
+    modelE = AutoModelForCausalLM.from_pretrained("microsoft/Phi-2")
     return tokenizerE, modelE
 
 @st.cache_resource
 def load_model_analyst():
-    # Analyst: HuggingFaceH4/zephyr-7b-beta
-    tokenizerA = AutoTokenizer.from_pretrained("HuggingFaceH4/zephyr-7b-beta")
-    modelA = AutoModelForCausalLM.from_pretrained("HuggingFaceH4/zephyr-7b-beta")
+    # Analyst: zephyr-7b-beta
+    tokenizerA = AutoTokenizer.from_pretrained("zephyr-ai/zephyr-7b-beta")
+    modelA = AutoModelForCausalLM.from_pretrained("zephyr-ai/zephyr-7b-beta")
     return tokenizerA, modelA
 
 # Load models
