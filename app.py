@@ -98,7 +98,7 @@ Analyst_Instructions: <...>
     inputs = tokenizer.encode(prompt, return_tensors="pt")
     outputs = model.generate(
         inputs,
-        max_length=128,           # keep it short
+        max_length=256,           # Extend length for better outputs
         temperature=0.7,
         do_sample=True,
         top_p=0.9,
@@ -131,7 +131,7 @@ If out of scope/unethical, politely refuse.
     inputs = tokenizer.encode(prompt, return_tensors="pt")
     outputs = model.generate(
         inputs,
-        max_length=128,
+        max_length=256,  # Extend length for detailed outputs
         temperature=0.7,
         do_sample=True,
         top_p=0.9,
@@ -163,7 +163,7 @@ If out of scope/unethical, politely refuse.
     inputs = tokenizer.encode(prompt, return_tensors="pt")
     outputs = model.generate(
         inputs,
-        max_length=128,
+        max_length=256,  # Extend length for detailed outputs
         temperature=0.7,
         do_sample=True,
         top_p=0.9,
