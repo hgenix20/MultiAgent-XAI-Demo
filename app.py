@@ -52,7 +52,7 @@ def load_model_analyst():
     return tokenizerA, modelA
 
 # Load models
-tokenizerC, modelC, pipeC = load_model_controller()
+tokenizerC, modelC = load_model_controller()
 tokenizerE, modelE = load_model_engineer()
 tokenizerA, modelA = load_model_analyst()
 
