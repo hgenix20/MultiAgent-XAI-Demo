@@ -10,6 +10,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 def load_model_engineer():
     # Engineer: DistilGPT-2
     tokenizerE = AutoTokenizer.from_pretrained("distilgpt2")
+    if tokenizerE.pad_token is None:
+        tokenizerE.add_special_tokens({'pad_token': '[PAD]'})
     modelE = AutoModelForCausalLM.from_pretrained("distilgpt2")
     return tokenizerE, modelE
 
@@ -17,6 +19,8 @@ def load_model_engineer():
 def load_model_analyst():
     # Analyst: GPT-Neo-125M
     tokenizerA = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
+    if tokenizerA.pad_token is None:
+        tokenizerA.add_special_tokens({'pad_token': '[PAD]'})
     modelA = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
     return tokenizerA, modelA
 
@@ -47,7 +51,7 @@ def generate_engineer_response(user_text, tokenizer, model):
         top_p=0.9,
         repetition_penalty=1.3,
         no_repeat_ngram_size=2,
-        pad_token_id=tokenizer.eos_token_id
+        pad_token_id=tokenizer.pad_token_id
     )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
@@ -71,7 +75,7 @@ Provide an approach or solution from a data-centric perspective.
         top_p=0.9,
         repetition_penalty=1.3,
         no_repeat_ngram_size=2,
-        pad_token_id=tokenizer.eos_token_id
+        pad_token_id=tokenizer.pad_token_id
     )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
