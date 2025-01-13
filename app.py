@@ -40,7 +40,7 @@ def generate_engineer_response(user_text, tokenizer, model):
     inputs = tokenizer.encode(prompt, return_tensors="pt")
     outputs = model.generate(
         inputs,
-        max_length=256,  # Extend length for detailed outputs
+        max_new_tokens=100,  # Generate up to 100 new tokens
         temperature=0.7,
         do_sample=True,
         top_p=0.9,
@@ -62,7 +62,7 @@ Provide an approach or solution from a data-centric perspective.
     inputs = tokenizer.encode(prompt, return_tensors="pt")
     outputs = model.generate(
         inputs,
-        max_length=256,  # Extend length for detailed outputs
+        max_new_tokens=100,  # Generate up to 100 new tokens
         temperature=0.7,
         do_sample=True,
         top_p=0.9,
