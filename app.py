@@ -3,12 +3,11 @@ import streamlit as st
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, pipeline
 
 try:
-    config = AutoConfig.from_pretrained("microsoft/phi-3.5-mini-instruct", trust_remote_code=True)
+    config = AutoConfig.from_pretrained("microsoft/Phi-3.5-MoE-instruct", trust_remote_code=True)
     print("Model configuration loaded successfully:")
     print(config)
 except KeyError as e:
     print(f"KeyError: {e}")
-
 
 ##############################################################################
 #                          MASTER POLICY
@@ -40,11 +39,10 @@ Keep your responses concise. If the request is unethical or out of scope, polite
 
 @st.cache_resource
 def load_model_controller():
-    # Controller: microsoft/phi-3.5-mini-instruct
-    pipe = pipeline
-    pipe = pipeline("text-generation", model="microsoft/phi-3.5-mini-instruct", trust_remote_code=True)
-    tokenizerC = AutoTokenizer.from_pretrained("microsoft/phi-3.5-mini-instruct", trust_remote_code=True)
-    modelC = AutoModelForCausalLM.from_pretrained("microsoft/phi-3.5-mini-instruct", trust_remote_code=True)
+    # Controller: microsoft/Phi-3.5-MoE-instruct
+    pipe = pipeline("text-generation", model="microsoft/Phi-3.5-MoE-instruct", trust_remote_code=True)
+    tokenizerC = AutoTokenizer.from_pretrained("microsoft/Phi-3.5-MoE-instruct", trust_remote_code=True)
+    modelC = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3.5-MoE-instruct", trust_remote_code=True)
     return tokenizerC, modelC, pipe
 
 @st.cache_resource
@@ -62,7 +60,7 @@ def load_model_analyst():
     return tokenizerA, modelA
 
 # Load models
-tokenizerC, modelC = load_model_controller()
+tokenizerC, modelC, pipeC = load_model_controller()
 tokenizerE, modelE = load_model_engineer()
 tokenizerA, modelA = load_model_analyst()
 
