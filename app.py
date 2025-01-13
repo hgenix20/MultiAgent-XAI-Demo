@@ -3,7 +3,7 @@ import streamlit as st
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, pipeline
 
 try:
-    config = AutoConfig.from_pretrained("microsoft/phi-4", trust_remote_code=True)
+    config = AutoConfig.from_pretrained("microsoft/phi-3.5-mini-instruct", trust_remote_code=True)
     print("Model configuration loaded successfully:")
     print(config)
 except KeyError as e:
@@ -40,11 +40,11 @@ Keep your responses concise. If the request is unethical or out of scope, polite
 
 @st.cache_resource
 def load_model_controller():
-    # Controller: microsoft/phi-4
+    # Controller: microsoft/phi-3.5-mini-instruct
     pipe = pipeline
-    pipe = pipeline("text-generation", model="microsoft/phi-4", trust_remote_code=True)
-    tokenizerC = AutoTokenizer.from_pretrained("microsoft/phi-4", trust_remote_code=True)
-    modelC = AutoModelForCausalLM.from_pretrained("microsoft/phi-4", trust_remote_code=True)
+    pipe = pipeline("text-generation", model="microsoft/phi-3.5-mini-instruct", trust_remote_code=True)
+    tokenizerC = AutoTokenizer.from_pretrained("microsoft/phi-3.5-mini-instruct", trust_remote_code=True)
+    modelC = AutoModelForCausalLM.from_pretrained("microsoft/phi-3.5-mini-instruct", trust_remote_code=True)
     return tokenizerC, modelC, pipe
 
 @st.cache_resource
