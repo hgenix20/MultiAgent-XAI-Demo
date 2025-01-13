@@ -39,7 +39,6 @@ def generate_engineer_response(user_text, tokenizer, model):
     prompt = f"""
     User text: {user_text}
     Provide a technical approach or solution.
-    
     """
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
@@ -63,7 +62,6 @@ def generate_analyst_response(user_text, engineer_output, tokenizer, model):
 Engineer provided the following: {engineer_output}
 
 Provide an approach or solution from a data-centric perspective.
-
 """
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
@@ -108,43 +106,45 @@ if st.button("Start/Continue Conversation"):
         user_text = st.session_state.user_input
         st.session_state.conversation.append(("User", user_text))
 
-        # Engineer generates a response
-        engineer_resp = generate_engineer_response(
-            user_text=user_text,
-            tokenizer=tokenizerE,
-            model=modelE
-        )
-        st.session_state.conversation.append(("Engineer", engineer_resp))
-
-        # Analyst generates a response based on engineer's output
-        analyst_resp = generate_analyst_response(
-            user_text=user_text,
-            engineer_output=engineer_resp,
-            tokenizer=tokenizerA,
-            model=modelA
-        )
-        st.session_state.conversation.append(("Analyst", analyst_resp))
-
-        # Limit the conversation to 3 exchanges between Engineer and Analyst
-        for _ in range(2):
+        # Display "Thinking..."
+        with st.spinner("Thinking..."):
+            # Engineer generates a response
             engineer_resp = generate_engineer_response(
-                user_text=analyst_resp,
+                user_text=user_text,
                 tokenizer=tokenizerE,
                 model=modelE
             )
             st.session_state.conversation.append(("Engineer", engineer_resp))
 
+            # Analyst generates a response based on engineer's output
             analyst_resp = generate_analyst_response(
-                user_text=engineer_resp,
+                user_text=user_text,
                 engineer_output=engineer_resp,
                 tokenizer=tokenizerA,
                 model=modelA
             )
             st.session_state.conversation.append(("Analyst", analyst_resp))
 
-        # Generate the summary after the conversation
-        final_plan = summarize_conversation(st.session_state.conversation)
-        st.session_state.conversation.append(("Summary", final_plan))
+            # Limit the conversation to 3 exchanges between Engineer and Analyst
+            for _ in range(2):
+                engineer_resp = generate_engineer_response(
+                    user_text=analyst_resp,
+                    tokenizer=tokenizerE,
+                    model=modelE
+                )
+                st.session_state.conversation.append(("Engineer", engineer_resp))
+
+                analyst_resp = generate_analyst_response(
+                    user_text=engineer_resp,
+                    engineer_output=engineer_resp,
+                    tokenizer=tokenizerA,
+                    model=modelA
+                )
+                st.session_state.conversation.append(("Analyst", analyst_resp))
+
+            # Generate the summary after the conversation
+            final_plan = summarize_conversation(st.session_state.conversation)
+            st.session_state.conversation.append(("Summary", final_plan))
 
 for speaker, text in st.session_state.conversation:
     if speaker == "User":
