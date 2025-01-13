@@ -30,14 +30,12 @@ tokenizerA, modelA = load_model_analyst()
 
 def generate_engineer_response(user_text, tokenizer, model):
     """
-    Engineer sees:
-      1) Safe user text
+    Engineer generates a concise approach or solution based on user input.
     """
     prompt = f"""
 User text: {user_text}
 
-Engineer, please provide a concise approach or solution. 
-If out of scope/unethical, politely refuse.
+Provide a technical approach or solution.
 """
     inputs = tokenizer.encode(prompt, return_tensors="pt")
     outputs = model.generate(
@@ -53,17 +51,14 @@ If out of scope/unethical, politely refuse.
 
 def generate_analyst_response(user_text, engineer_output, tokenizer, model):
     """
-    Analyst sees:
-      1) Safe user text
-      2) Engineer's output, if relevant
+    Analyst provides an approach or solution based on user input and engineer's output.
     """
     prompt = f"""
 User text: {user_text}
 
-Engineer's output: {engineer_output}
+Engineer provided the following: {engineer_output}
 
-Analyst, please provide a concise approach or solution.
-If out of scope/unethical, politely refuse.
+Provide an approach or solution from a data-centric perspective.
 """
     inputs = tokenizer.encode(prompt, return_tensors="pt")
     outputs = model.generate(
