@@ -30,13 +30,13 @@ tokenizerA, modelA = load_model_analyst()
 
 def generate_engineer_response(user_text, tokenizer, model):
     """
-    Engineer generates a concise approach or solution based on user input.
+    As an Engineer, generate a concise approach or solution based on user input.
     """
     prompt = f"""
-User text: {user_text}
-
-Provide a technical approach or solution.
-"""
+    User text: {user_text}
+    Provide a technical approach or solution.
+    
+    """
     inputs = tokenizer.encode(prompt, return_tensors="pt")
     outputs = model.generate(
         inputs,
@@ -51,14 +51,13 @@ Provide a technical approach or solution.
 
 def generate_analyst_response(user_text, engineer_output, tokenizer, model):
     """
-    Analyst provides an approach or solution based on user input and engineer's output.
+    As an Analyst, provide an approach or solution based on user input and engineer's output.
     """
     prompt = f"""
-User text: {user_text}
-
 Engineer provided the following: {engineer_output}
 
 Provide an approach or solution from a data-centric perspective.
+
 """
     inputs = tokenizer.encode(prompt, return_tensors="pt")
     outputs = model.generate(
@@ -81,26 +80,52 @@ st.title("Multi-Agent System with XAI Demo")
 if "conversation" not in st.session_state:
     st.session_state.conversation = []
 
-user_input = st.text_input("Enter a question/scenario:")
+if "user_input" not in st.session_state:
+    st.session_state.user_input = ""
+
+st.text_area("User Input:", value=st.session_state.user_input, height=100, max_chars=None, key="user_input")
 
 if st.button("Start/Continue Conversation"):
-    if user_input.strip():
-        # 1) Engineer
+    if st.session_state.user_input.strip():
+        user_text = st.session_state.user_input
+        st.session_state.conversation.append(("User", user_text))
+
+        # Engineer generates a response
         engineer_resp = generate_engineer_response(
-            user_text=user_input,
+            user_text=user_text,
             tokenizer=tokenizerE,
             model=modelE
         )
         st.session_state.conversation.append(("Engineer", engineer_resp))
 
-        # 2) Analyst
+        # Analyst generates a response based on engineer's output
         analyst_resp = generate_analyst_response(
-            user_text=user_input,
+            user_text=user_text,
             engineer_output=engineer_resp,
             tokenizer=tokenizerA,
             model=modelA
         )
         st.session_state.conversation.append(("Analyst", analyst_resp))
 
+        # Limit the conversation to 3 exchanges between Engineer and Analyst
+        for _ in range(2):
+            engineer_resp = generate_engineer_response(
+                user_text=analyst_resp,
+                tokenizer=tokenizerE,
+                model=modelE
+            )
+            st.session_state.conversation.append(("Engineer", engineer_resp))
+
+            analyst_resp = generate_analyst_response(
+                user_text=engineer_resp,
+                engineer_output=engineer_resp,
+                tokenizer=tokenizerA,
+                model=modelA
+            )
+            st.session_state.conversation.append(("Analyst", analyst_resp))
+
 for speaker, text in st.session_state.conversation:
-    st.markdown(f"**{speaker}:** {text}")
+    if speaker == "User":
+        st.markdown(f"**{speaker}:** {text}")
+    else:
+        st.markdown(f"<div style='display:none'>{speaker}: {text}</div>", unsafe_allow_html=True)
