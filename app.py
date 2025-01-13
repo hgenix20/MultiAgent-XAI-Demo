@@ -1,6 +1,14 @@
 import streamlit as st
 
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
+
+try:
+    config = AutoConfig.from_pretrained("microsoft/phi-4", trust_remote_code=True)
+    print("Model configuration loaded successfully:")
+    print(config)
+except KeyError as e:
+    print(f"KeyError: {e}")
+
 
 ##############################################################################
 #                          MASTER POLICY
