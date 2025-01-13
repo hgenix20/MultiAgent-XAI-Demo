@@ -3,24 +3,6 @@ import streamlit as st
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 ##############################################################################
-#                          ENGINEER POLICY
-##############################################################################
-
-ENGINEER_POLICY = """
-You are the Engineer. Focus on technical implementation and engineering tasks.
-Keep your responses concise. If the request is unethical or out of scope, politely refuse.
-"""
-
-##############################################################################
-#                          ANALYST POLICY
-##############################################################################
-
-ANALYST_POLICY = """
-You are the Analyst. Focus on data-centric or machine learning approaches.
-Keep your responses concise. If the request is unethical or out of scope, politely refuse.
-"""
-
-##############################################################################
 #                          LOAD MODELS
 ##############################################################################
 
@@ -46,15 +28,12 @@ tokenizerA, modelA = load_model_analyst()
 #                     ENGINEER / ANALYST GENERATION
 ##############################################################################
 
-def generate_engineer_response(engineer_policy, user_text, tokenizer, model):
+def generate_engineer_response(user_text, tokenizer, model):
     """
     Engineer sees:
-      1) Its short policy
-      2) Safe user text
+      1) Safe user text
     """
     prompt = f"""
-{engineer_policy}
-
 User text: {user_text}
 
 Engineer, please provide a concise approach or solution. 
@@ -72,16 +51,13 @@ If out of scope/unethical, politely refuse.
     )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-def generate_analyst_response(analyst_policy, user_text, engineer_output, tokenizer, model):
+def generate_analyst_response(user_text, engineer_output, tokenizer, model):
     """
     Analyst sees:
-      1) Its short policy
-      2) Safe user text
-      3) Engineer's output, if relevant
+      1) Safe user text
+      2) Engineer's output, if relevant
     """
     prompt = f"""
-{analyst_policy}
-
 User text: {user_text}
 
 Engineer's output: {engineer_output}
@@ -116,7 +92,6 @@ if st.button("Start/Continue Conversation"):
     if user_input.strip():
         # 1) Engineer
         engineer_resp = generate_engineer_response(
-            engineer_policy=ENGINEER_POLICY,
             user_text=user_input,
             tokenizer=tokenizerE,
             model=modelE
@@ -125,7 +100,6 @@ if st.button("Start/Continue Conversation"):
 
         # 2) Analyst
         analyst_resp = generate_analyst_response(
-            analyst_policy=ANALYST_POLICY,
             user_text=user_input,
             engineer_output=engineer_resp,
             tokenizer=tokenizerA,
