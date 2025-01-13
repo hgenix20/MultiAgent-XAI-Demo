@@ -47,8 +47,8 @@ def load_model_engineer():
 @st.cache_resource
 def load_model_analyst():
     # Analyst: zephyr-7b-beta
-    tokenizerA = AutoTokenizer.from_pretrained("zephyr-ai/zephyr-7b-beta")
-    modelA = AutoModelForCausalLM.from_pretrained("zephyr-ai/zephyr-7b-beta")
+    tokenizerA = AutoTokenizer.from_pretrained("HuggingFaceH4/zephyr-7b-beta")
+    modelA = AutoModelForCausalLM.from_pretrained("HuggingFaceH4/zephyr-7b-beta")
     return tokenizerA, modelA
 
 # Load models
