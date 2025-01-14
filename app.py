@@ -8,20 +8,20 @@ from transformers import pipeline
 
 @st.cache_resource
 def load_model_engineer():
-    # Engineer: Microsoft PHI-4 via pipeline
+    # Engineer: DeepSeek-V5 via pipeline
     engineer_pipeline = pipeline(
         "text-generation",
-        model="microsoft/phi-4",
+        model="unsloth/DeepSeek-V3",
         trust_remote_code=True
     )
     return engineer_pipeline
 
 @st.cache_resource
 def load_model_analyst():
-    # Analyst: Microsoft PHI-4 via pipeline
+    # Analyst: DeepSeek-V5 via pipeline
     analyst_pipeline = pipeline(
         "text-generation",
-        model="microsoft/phi-4",
+        model="unsloth/DeepSeek-V3",
         trust_remote_code=True
     )
     return analyst_pipeline
@@ -103,6 +103,4 @@ if st.button("Generate Responses"):
 
         # Summarize the final plan
         with st.spinner("Generating the final plan..."):
-            final_plan = summarize_conversation(st.session_state.conversation)
-            st.session_state.conversation.append(("Summary", final_plan))
-            st.markdown(final_plan)
+            final_plan = summarize_conversation
