@@ -66,7 +66,7 @@ def summarize_conversation(conversation):
         if speaker == "Engineer" or speaker == "Analyst":
             key_points.append(f"- {speaker}: {text}")
     summary += "\n".join(key_points[-6:])  # Include only the last 3 turns each
-    summary += "\n\nThis collaborative plan integrates technical and analytical insights."
+    summary += "\n\nThis collaborative plan integrates technical and analytical insights into an actionable framework."
     return summary
 
 ##############################################################################
@@ -88,8 +88,8 @@ if st.button("Generate Responses"):
         user_text = st.session_state.user_input
         st.session_state.conversation = [("User", user_text)]  # Clear and restart conversation
 
-        engineer_prompt_base = f"The user asked: {user_text}. Provide a concise technical solution."
-        analyst_prompt_base = "Respond with complementary data-driven insights."
+        engineer_prompt_base = f"Given the problem: {user_text}, provide a concise and actionable technical solution."
+        analyst_prompt_base = "Based on the engineer's suggestion, provide complementary data-driven recommendations."
 
         for turn in range(3):
             # Engineer generates a response
@@ -107,7 +107,7 @@ if st.button("Generate Responses"):
             # Analyst generates a response based on engineer's output
             with st.spinner(f"Analyst is formulating response {turn + 1}..."):
                 analyst_resp = generate_response(
-                    prompt=f"Engineer said: {engineer_resp}. {analyst_prompt_base}",
+                    prompt=f"Engineer suggested: {engineer_resp}. {analyst_prompt_base}",
                     tokenizer=tokenizerA,
                     model=modelA
                 )
