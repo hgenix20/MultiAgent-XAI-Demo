@@ -108,20 +108,49 @@ if st.button("Start/Continue Conversation"):
         user_text = st.session_state.user_input
         st.session_state.conversation.append(("User", user_text))
 
-        # Display "Thinking..."
-        with st.spinner("Thinking..."):
-            # Engineer generates a response
+        # Engineer generates a response
+        engineer_resp, engineer_explanation = generate_engineer_response(
+            user_text=user_text,
+            tokenizer=tokenizerE,
+            model=modelE
+        )
+        st.session_state.conversation.append(("Engineer", engineer_resp))
+        st.session_state.conversation.append(("Engineer Explanation", engineer_explanation))
+
+        # Display Engineer response immediately
+        st.markdown(f"**Engineer:** {engineer_resp}")
+        st.markdown(f"<i>{engineer_explanation}</i>", unsafe_allow_html=True)
+
+        # Analyst generates a response based on engineer's output
+        analyst_resp, analyst_explanation = generate_analyst_response(
+            user_text=user_text,
+            engineer_output=engineer_resp,
+            tokenizer=tokenizerA,
+            model=modelA
+        )
+        st.session_state.conversation.append(("Analyst", analyst_resp))
+        st.session_state.conversation.append(("Analyst Explanation", analyst_explanation))
+
+        # Display Analyst response immediately
+        st.markdown(f"**Analyst:** {analyst_resp}")
+        st.markdown(f"<i>{analyst_explanation}</i>", unsafe_allow_html=True)
+
+        # Limit the conversation to 3 exchanges between Engineer and Analyst
+        for _ in range(2):
             engineer_resp, engineer_explanation = generate_engineer_response(
-                user_text=user_text,
+                user_text=analyst_resp,
                 tokenizer=tokenizerE,
                 model=modelE
             )
             st.session_state.conversation.append(("Engineer", engineer_resp))
             st.session_state.conversation.append(("Engineer Explanation", engineer_explanation))
 
-            # Analyst generates a response based on engineer's output
+            # Display Engineer response immediately
+            st.markdown(f"**Engineer:** {engineer_resp}")
+            st.markdown(f"<i>{engineer_explanation}</i>", unsafe_allow_html=True)
+
             analyst_resp, analyst_explanation = generate_analyst_response(
-                user_text=user_text,
+                user_text=engineer_resp,
                 engineer_output=engineer_resp,
                 tokenizer=tokenizerA,
                 model=modelA
@@ -129,28 +158,14 @@ if st.button("Start/Continue Conversation"):
             st.session_state.conversation.append(("Analyst", analyst_resp))
             st.session_state.conversation.append(("Analyst Explanation", analyst_explanation))
 
-            # Limit the conversation to 3 exchanges between Engineer and Analyst
-            for _ in range(2):
-                engineer_resp, engineer_explanation = generate_engineer_response(
-                    user_text=analyst_resp,
-                    tokenizer=tokenizerE,
-                    model=modelE
-                )
-                st.session_state.conversation.append(("Engineer", engineer_resp))
-                st.session_state.conversation.append(("Engineer Explanation", engineer_explanation))
+            # Display Analyst response immediately
+            st.markdown(f"**Analyst:** {analyst_resp}")
+            st.markdown(f"<i>{analyst_explanation}</i>", unsafe_allow_html=True)
 
-                analyst_resp, analyst_explanation = generate_analyst_response(
-                    user_text=engineer_resp,
-                    engineer_output=engineer_resp,
-                    tokenizer=tokenizerA,
-                    model=modelA
-                )
-                st.session_state.conversation.append(("Analyst", analyst_resp))
-                st.session_state.conversation.append(("Analyst Explanation", analyst_explanation))
-
-            # Generate the summary after the conversation
-            final_plan = summarize_conversation(st.session_state.conversation)
-            st.session_state.conversation.append(("Summary", final_plan))
+        # Generate the summary after the conversation
+        final_plan = summarize_conversation(st.session_state.conversation)
+        st.session_state.conversation.append(("Summary", final_plan))
+        st.markdown(f"**Summary:** {final_plan}")
 
 for speaker, text in st.session_state.conversation:
     if speaker == "User":
@@ -159,5 +174,3 @@ for speaker, text in st.session_state.conversation:
         st.markdown(f"**{speaker}:** {text}")
     elif "Explanation" in speaker:
         st.markdown(f"<i>{speaker}: {text}</i>", unsafe_allow_html=True)
-    else:
-        st.markdown(f"<div style='display:none'>{speaker}: {text}</div>", unsafe_allow_html=True)
