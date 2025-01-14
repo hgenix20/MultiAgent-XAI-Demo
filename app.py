@@ -28,13 +28,13 @@ def load_model_engineer():
             raise
     else:
         try:
-            # Fallback: Load model directly
+            # Fallback: Load model directly with fp16 precision
             tokenizer = AutoTokenizer.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
             model = AutoModelForCausalLM.from_pretrained(
                 "unsloth/DeepSeek-V3",
                 trust_remote_code=True
             )
-            model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+            model = model.half().to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
             return tokenizer, model
         except Exception as e:
             st.error(f"Direct model loading failed for Engineer: {str(e)}")
@@ -56,13 +56,13 @@ def load_model_analyst():
             raise
     else:
         try:
-            # Fallback: Load model directly
+            # Fallback: Load model directly with fp16 precision
             tokenizer = AutoTokenizer.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
             model = AutoModelForCausalLM.from_pretrained(
                 "unsloth/DeepSeek-V3",
                 trust_remote_code=True
             )
-            model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+            model = model.half().to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
             return tokenizer, model
         except Exception as e:
             st.error(f"Direct model loading failed for Analyst: {str(e)}")
