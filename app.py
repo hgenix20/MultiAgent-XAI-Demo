@@ -48,7 +48,7 @@ def generate_response(prompt, tokenizer, model, max_sentences=2):
         temperature=0.6,
         do_sample=True,
         top_p=0.8,
-        repetition_penalty=2.0,
+        repetition_penalty=2.2,
         no_repeat_ngram_size=4,
         pad_token_id=tokenizer.pad_token_id
     )
@@ -61,10 +61,12 @@ def summarize_conversation(conversation):
     Summarize the entire conversation to produce a cohesive and actionable plan.
     """
     summary = "### Final Plan\n"
+    key_points = []
     for speaker, text in conversation:
         if speaker == "Engineer" or speaker == "Analyst":
-            summary += f"- **{speaker}:** {text}\n"
-    summary += "\nThis collaborative plan integrates technical and analytical insights."
+            key_points.append(f"- {speaker}: {text}")
+    summary += "\n".join(key_points[-6:])  # Include only the last 3 turns each
+    summary += "\n\nThis collaborative plan integrates technical and analytical insights."
     return summary
 
 ##############################################################################
@@ -86,14 +88,14 @@ if st.button("Generate Responses"):
         user_text = st.session_state.user_input
         st.session_state.conversation = [("User", user_text)]  # Clear and restart conversation
 
-        engineer_prompt = f"User: {user_text}\nEngineer: Provide a technical solution or approach that directly addresses the user's problem."
-        analyst_prompt = ""
+        engineer_prompt_base = f"The user asked: {user_text}. Provide a concise technical solution."
+        analyst_prompt_base = "Respond with complementary data-driven insights."
 
         for turn in range(3):
             # Engineer generates a response
             with st.spinner(f"Engineer is formulating response {turn + 1}..."):
                 engineer_resp = generate_response(
-                    prompt=engineer_prompt,
+                    prompt=engineer_prompt_base,
                     tokenizer=tokenizerE,
                     model=modelE
                 )
@@ -103,10 +105,9 @@ if st.button("Generate Responses"):
             st.markdown(f"### Engineer Response ({turn + 1})\n{engineer_resp}")
 
             # Analyst generates a response based on engineer's output
-            analyst_prompt = f"Engineer: {engineer_resp}\nAnalyst: Respond with actionable insights or complementary data-driven recommendations."
             with st.spinner(f"Analyst is formulating response {turn + 1}..."):
                 analyst_resp = generate_response(
-                    prompt=analyst_prompt,
+                    prompt=f"Engineer said: {engineer_resp}. {analyst_prompt_base}",
                     tokenizer=tokenizerA,
                     model=modelA
                 )
