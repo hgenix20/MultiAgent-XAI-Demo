@@ -1,10 +1,6 @@
 import streamlit as st
 
-from transformers import AutoModelForCausalLM
-try:
-    from transformers import AutoTokenizer
-except ImportError:
-    from transformers import GPT2Tokenizer as AutoTokenizer
+from transformers import pipeline
 
 ##############################################################################
 #                          LOAD MODELS
@@ -12,47 +8,38 @@ except ImportError:
 
 @st.cache_resource
 def load_model_engineer():
-    # Engineer: EleutherAI GPT-Neo-125M
-    tokenizerE = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
-    if tokenizerE.pad_token is None:
-        tokenizerE.add_special_tokens({'pad_token': '[PAD]'})
-    modelE = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
-    return tokenizerE, modelE
+    # Engineer: Microsoft PHI-4 via pipeline
+    engineer_pipeline = pipeline(
+        "text-generation",
+        model="microsoft/phi-4",
+        trust_remote_code=True
+    )
+    return engineer_pipeline
 
 @st.cache_resource
 def load_model_analyst():
-    # Analyst: Microsoft DialoGPT-small
-    tokenizerA = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
-    if tokenizerA.pad_token is None:
-        tokenizerA.add_special_tokens({'pad_token': '[PAD]'})
-    modelA = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-small")
-    return tokenizerA, modelA
+    # Analyst: Microsoft PHI-4 via pipeline
+    analyst_pipeline = pipeline(
+        "text-generation",
+        model="microsoft/phi-4",
+        trust_remote_code=True
+    )
+    return analyst_pipeline
 
 # Load models
-tokenizerE, modelE = load_model_engineer()
-tokenizerA, modelA = load_model_analyst()
+engineer_pipeline = load_model_engineer()
+analyst_pipeline = load_model_analyst()
 
 ##############################################################################
 #                     ENGINEER / ANALYST GENERATION
 ##############################################################################
 
-def generate_response(prompt, tokenizer, model, max_sentences=2):
+def generate_response(prompt, pipeline_model, max_sentences=2):
     """
     Generate a concise response based on the provided prompt.
     """
-    inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
-    outputs = model.generate(
-        inputs["input_ids"],
-        attention_mask=inputs["attention_mask"],
-        max_new_tokens=50,  # Restrict length
-        temperature=0.6,
-        do_sample=True,
-        top_p=0.8,
-        repetition_penalty=2.2,
-        no_repeat_ngram_size=4,
-        pad_token_id=tokenizer.pad_token_id
-    )
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+    outputs = pipeline_model(prompt, max_new_tokens=50, temperature=0.6, top_p=0.8)
+    response = outputs[0]["generated_text"].strip()
     # Limit to max_sentences by splitting and rejoining
     return " ".join(response.split(".")[:max_sentences]) + "."
 
@@ -96,8 +83,7 @@ if st.button("Generate Responses"):
             with st.spinner(f"Engineer is formulating response {turn + 1}..."):
                 engineer_resp = generate_response(
                     prompt=engineer_prompt_base,
-                    tokenizer=tokenizerE,
-                    model=modelE
+                    pipeline_model=engineer_pipeline
                 )
                 st.session_state.conversation.append(("Engineer", engineer_resp))
 
@@ -108,8 +94,7 @@ if st.button("Generate Responses"):
             with st.spinner(f"Analyst is formulating response {turn + 1}..."):
                 analyst_resp = generate_response(
                     prompt=f"Engineer suggested: {engineer_resp}. {analyst_prompt_base}",
-                    tokenizer=tokenizerA,
-                    model=modelA
+                    pipeline_model=analyst_pipeline
                 )
                 st.session_state.conversation.append(("Analyst", analyst_resp))
 
