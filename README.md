@@ -8,7 +8,7 @@ sdk_version: 1.41.1
 app_file: app.py
 pinned: false
 license: mit
-short_description: A demo showcasing multi-agent conversational AI using Microsoft PHI-4 for generating technical and analytical insights.
+short_description: A demo showcasing multi-agent conversational AI.
 ---
 
 ## MultiAgent XAI Demo
