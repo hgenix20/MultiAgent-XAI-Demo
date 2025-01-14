@@ -56,7 +56,7 @@ def generate_engineer_response(user_text, tokenizer, model):
         no_repeat_ngram_size=4,
         pad_token_id=tokenizer.pad_token_id
     )
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
 
 def generate_analyst_response(user_text, engineer_output, tokenizer, model):
     """
@@ -79,17 +79,20 @@ Based on this, provide an actionable data-driven approach or solution to complem
         no_repeat_ngram_size=4,
         pad_token_id=tokenizer.pad_token_id
     )
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
 
 def summarize_conversation(conversation):
     """
     Summarize the entire conversation to produce a comprehensive plan.
     """
     summary = "### Final Plan\n"
-    for speaker, text in conversation:
-        if speaker not in ["User", "Summary"]:
-            summary += f"- **{speaker}:** {text}\n"
-    summary += "\nThis plan has been refined to ensure relevance and actionable insights."
+    engineer_response = next((text for speaker, text in conversation if speaker == "Engineer"), "")
+    analyst_response = next((text for speaker, text in conversation if speaker == "Analyst"), "")
+
+    summary += "- **Engineer Perspective:**\n  " + engineer_response + "\n\n"
+    summary += "- **Analyst Perspective:**\n  " + analyst_response + "\n\n"
+    summary += "This plan has been refined to ensure actionable and cohesive insights."
+
     return summary
 
 ##############################################################################
