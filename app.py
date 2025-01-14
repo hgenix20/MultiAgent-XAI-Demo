@@ -81,7 +81,7 @@ def summarize_conversation(conversation):
     """
     Summarize the entire conversation to produce a comprehensive plan.
     """
-    summary = "**Final Plan:**\n"
+    summary = "### Final Plan\n"
     for speaker, text in conversation:
         if speaker not in ["User", "Summary"]:
             summary += f"- **{speaker}:** {text}\n"
@@ -100,12 +100,12 @@ if "conversation" not in st.session_state:
 if "user_input" not in st.session_state:
     st.session_state.user_input = ""
 
-st.text_area("User Input:", value=st.session_state.user_input, height=100, max_chars=None, key="user_input")
+st.text_area("Enter your query:", value=st.session_state.user_input, height=100, max_chars=None, key="user_input")
 
-if st.button("Start/Continue Conversation"):
+if st.button("Generate Responses"):
     if st.session_state.user_input.strip():
         user_text = st.session_state.user_input
-        st.session_state.conversation.append(("User", user_text))
+        st.session_state.conversation = [("User", user_text)]  # Clear and restart conversation
 
         # Engineer generates a response
         with st.spinner("Engineer is formulating a solution..."):
@@ -117,7 +117,7 @@ if st.button("Start/Continue Conversation"):
             st.session_state.conversation.append(("Engineer", engineer_resp))
 
         # Display Engineer response immediately
-        st.markdown(f"**Engineer:** {engineer_resp}")
+        st.markdown(f"### Engineer Response\n{engineer_resp}")
 
         # Analyst generates a response based on engineer's output
         with st.spinner("Analyst is analyzing data and providing insights..."):
@@ -130,18 +130,10 @@ if st.button("Start/Continue Conversation"):
             st.session_state.conversation.append(("Analyst", analyst_resp))
 
         # Display Analyst response immediately
-        st.markdown(f"**Analyst:** {analyst_resp}")
+        st.markdown(f"### Analyst Response\n{analyst_resp}")
 
-        # Limit the conversation to 1 iteration
+        # Summarize the final plan
         with st.spinner("Generating the final plan..."):
             final_plan = summarize_conversation(st.session_state.conversation)
             st.session_state.conversation.append(("Summary", final_plan))
             st.markdown(final_plan)
-
-for speaker, text in st.session_state.conversation:
-    if speaker == "User":
-        st.markdown(f"**{speaker}:** {text}")
-    elif speaker == "Summary":
-        st.markdown(f"**{speaker}:** {text}")
-    else:
-        st.markdown(f"**{speaker}:** {text}")
