@@ -48,7 +48,7 @@ def generate_engineer_response(user_text, tokenizer, model):
         temperature=0.6,
         do_sample=True,
         top_p=0.8,
-        repetition_penalty=2,
+        repetition_penalty=2.0,
         no_repeat_ngram_size=4,
         pad_token_id=tokenizer.pad_token_id
     )
@@ -71,7 +71,7 @@ Based on this, provide an actionable data-driven approach or solution to complem
         temperature=0.6,
         do_sample=True,
         top_p=0.8,
-        repetition_penalty=2,
+        repetition_penalty=2.0,
         no_repeat_ngram_size=4,
         pad_token_id=tokenizer.pad_token_id
     )
