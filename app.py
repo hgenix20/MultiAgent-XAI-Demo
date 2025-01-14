@@ -1,6 +1,10 @@
 import streamlit as st
 
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoModelForCausalLM
+try:
+    from transformers import AutoTokenizer
+except ImportError:
+    from transformers import GPT2Tokenizer as AutoTokenizer
 
 ##############################################################################
 #                          LOAD MODELS
