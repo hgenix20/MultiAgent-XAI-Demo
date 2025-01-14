@@ -44,12 +44,12 @@ def generate_engineer_response(user_text, tokenizer, model):
     outputs = model.generate(
         inputs["input_ids"],
         attention_mask=inputs["attention_mask"],
-        max_new_tokens=60,  # Restrict length
+        max_new_tokens=50,  # Restrict length
         temperature=0.6,
         do_sample=True,
         top_p=0.8,
-        repetition_penalty=1.3,
-        no_repeat_ngram_size=3,
+        repetition_penalty=2,
+        no_repeat_ngram_size=4,
         pad_token_id=tokenizer.pad_token_id
     )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
@@ -67,12 +67,12 @@ Based on this, provide an actionable data-driven approach or solution to complem
     outputs = model.generate(
         inputs["input_ids"],
         attention_mask=inputs["attention_mask"],
-        max_new_tokens=60,  # Restrict length
+        max_new_tokens=50,  # Restrict length
         temperature=0.6,
         do_sample=True,
         top_p=0.8,
-        repetition_penalty=1.3,
-        no_repeat_ngram_size=3,
+        repetition_penalty=2,
+        no_repeat_ngram_size=4,
         pad_token_id=tokenizer.pad_token_id
     )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
