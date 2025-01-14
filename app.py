@@ -8,20 +8,20 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 @st.cache_resource
 def load_model_engineer():
-    # Engineer: Databricks Dolly-v2-3b
-    tokenizerE = AutoTokenizer.from_pretrained("databricks/dolly-v2-3b")
+    # Engineer: EleutherAI GPT-Neo-125M
+    tokenizerE = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
     if tokenizerE.pad_token is None:
         tokenizerE.add_special_tokens({'pad_token': '[PAD]'})
-    modelE = AutoModelForCausalLM.from_pretrained("databricks/dolly-v2-3b")
+    modelE = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
     return tokenizerE, modelE
 
 @st.cache_resource
 def load_model_analyst():
-    # Analyst: HuggingFace Zephyr-7b-beta
-    tokenizerA = AutoTokenizer.from_pretrained("HuggingFaceH4/zephyr-7b-beta")
+    # Analyst: Microsoft DialoGPT-small
+    tokenizerA = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
     if tokenizerA.pad_token is None:
         tokenizerA.add_special_tokens({'pad_token': '[PAD]'})
-    modelA = AutoModelForCausalLM.from_pretrained("HuggingFaceH4/zephyr-7b-beta")
+    modelA = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-small")
     return tokenizerA, modelA
 
 # Load models
