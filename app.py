@@ -15,40 +15,65 @@ except ImportError:
 @st.cache_resource
 def load_model_engineer():
     if USE_PIPELINE:
-        # Engineer: DeepSeek-V3 via pipeline
-        engineer_pipeline = pipeline(
-            "text-generation",
-            model="unsloth/DeepSeek-V3",
-            trust_remote_code=True
-        )
-        return engineer_pipeline
+        try:
+            # Engineer: DeepSeek-V3 via pipeline
+            engineer_pipeline = pipeline(
+                "text-generation",
+                model="unsloth/DeepSeek-V3",
+                trust_remote_code=True
+            )
+            return engineer_pipeline
+        except Exception as e:
+            st.error(f"Pipeline failed to load for Engineer: {str(e)}")
+            raise
     else:
-        # Fallback: Load model directly
-        tokenizer = AutoTokenizer.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
-        model = AutoModelForCausalLM.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
-        model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-        return tokenizer, model
+        try:
+            # Fallback: Load model directly
+            tokenizer = AutoTokenizer.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
+            model = AutoModelForCausalLM.from_pretrained(
+                "unsloth/DeepSeek-V3",
+                trust_remote_code=True
+            )
+            model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+            return tokenizer, model
+        except Exception as e:
+            st.error(f"Direct model loading failed for Engineer: {str(e)}")
+            raise
 
 @st.cache_resource
 def load_model_analyst():
     if USE_PIPELINE:
-        # Analyst: DeepSeek-V3 via pipeline
-        analyst_pipeline = pipeline(
-            "text-generation",
-            model="unsloth/DeepSeek-V3",
-            trust_remote_code=True
-        )
-        return analyst_pipeline
+        try:
+            # Analyst: DeepSeek-V3 via pipeline
+            analyst_pipeline = pipeline(
+                "text-generation",
+                model="unsloth/DeepSeek-V3",
+                trust_remote_code=True
+            )
+            return analyst_pipeline
+        except Exception as e:
+            st.error(f"Pipeline failed to load for Analyst: {str(e)}")
+            raise
     else:
-        # Fallback: Load model directly
-        tokenizer = AutoTokenizer.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
-        model = AutoModelForCausalLM.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
-        model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-        return tokenizer, model
+        try:
+            # Fallback: Load model directly
+            tokenizer = AutoTokenizer.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
+            model = AutoModelForCausalLM.from_pretrained(
+                "unsloth/DeepSeek-V3",
+                trust_remote_code=True
+            )
+            model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+            return tokenizer, model
+        except Exception as e:
+            st.error(f"Direct model loading failed for Analyst: {str(e)}")
+            raise
 
 # Load models
-engineer_model = load_model_engineer()
-analyst_model = load_model_analyst()
+try:
+    engineer_model = load_model_engineer()
+    analyst_model = load_model_analyst()
+except Exception as load_error:
+    st.stop()
 
 ##############################################################################
 #                     ENGINEER / ANALYST GENERATION
@@ -58,22 +83,26 @@ def generate_response(prompt, model, max_sentences=2):
     """
     Generate a concise response based on the provided prompt.
     """
-    if USE_PIPELINE:
-        outputs = model(prompt, max_new_tokens=50, temperature=0.6, top_p=0.8)
-        response = outputs[0]["generated_text"].strip()
-    else:
-        tokenizer, model = model
-        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-        outputs = model.generate(
-            inputs["input_ids"],
-            max_new_tokens=50,
-            temperature=0.6,
-            top_p=0.8,
-            pad_token_id=tokenizer.pad_token_id
-        )
-        response = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
-    # Limit to max_sentences by splitting and rejoining
-    return " ".join(response.split(".")[:max_sentences]) + "."
+    try:
+        if USE_PIPELINE:
+            outputs = model(prompt, max_new_tokens=50, temperature=0.6, top_p=0.8)
+            response = outputs[0]["generated_text"].strip()
+        else:
+            tokenizer, model = model
+            inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+            outputs = model.generate(
+                inputs["input_ids"],
+                max_new_tokens=50,
+                temperature=0.6,
+                top_p=0.8,
+                pad_token_id=tokenizer.pad_token_id
+            )
+            response = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+        # Limit to max_sentences by splitting and rejoining
+        return " ".join(response.split(".")[:max_sentences]) + "."
+    except Exception as gen_error:
+        st.error(f"Error during response generation: {str(gen_error)}")
+        return "[Error generating response]"
 
 def summarize_conversation(conversation):
     """
