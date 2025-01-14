@@ -38,18 +38,18 @@ def generate_engineer_response(user_text, tokenizer, model):
     """
     prompt = f"""
     User text: {user_text}
-    Provide a technical approach or solution that directly addresses the problem. Ensure your response is actionable and concise (max 5 sentences).
+    Provide a technical approach or solution that directly addresses the problem. Ensure your response is actionable and concise (max 5 sentences). Avoid speculative information or unrelated examples.
     """
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
         inputs["input_ids"],
         attention_mask=inputs["attention_mask"],
-        max_new_tokens=80,  # Limit to 80 new tokens
-        temperature=0.7,
+        max_new_tokens=60,  # Restrict length
+        temperature=0.6,
         do_sample=True,
-        top_p=0.85,
-        repetition_penalty=1.2,
-        no_repeat_ngram_size=2,
+        top_p=0.8,
+        repetition_penalty=1.3,
+        no_repeat_ngram_size=3,
         pad_token_id=tokenizer.pad_token_id
     )
     explanation = "Engineer response generated based on user input."  # Keep explanations concise
@@ -62,18 +62,18 @@ def generate_analyst_response(user_text, engineer_output, tokenizer, model):
     prompt = f"""
 Engineer provided the following: {engineer_output}
 
-Based on this, provide an actionable data-driven approach or solution to complement the engineer's perspective. Limit your response to one paragraph.
+Based on this, provide an actionable data-driven approach or solution to complement the engineer's perspective. Limit your response to one paragraph (max 5 sentences). Avoid speculative information or unrelated examples.
 """
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
         inputs["input_ids"],
         attention_mask=inputs["attention_mask"],
-        max_new_tokens=80,  # Limit to 80 new tokens
-        temperature=0.7,
+        max_new_tokens=60,  # Restrict length
+        temperature=0.6,
         do_sample=True,
-        top_p=0.85,
-        repetition_penalty=1.2,
-        no_repeat_ngram_size=2,
+        top_p=0.8,
+        repetition_penalty=1.3,
+        no_repeat_ngram_size=3,
         pad_token_id=tokenizer.pad_token_id
     )
     explanation = "Analyst response generated based on Engineer's output."  # Keep explanations concise
@@ -87,6 +87,7 @@ def summarize_conversation(conversation):
     for speaker, text in conversation:
         if speaker not in ["User", "Summary"]:
             summary += f"- **{speaker}:** {text}\n"
+    summary += "\nThis plan has been refined to ensure relevance and actionable insights."
     return summary
 
 ##############################################################################
@@ -133,8 +134,8 @@ if st.button("Start/Continue Conversation"):
         # Display Analyst response immediately
         st.markdown(f"**Analyst:** {analyst_resp}")
 
-        # Limit the conversation to 3 exchanges between Engineer and Analyst
-        for _ in range(2):
+        # Limit the conversation to 2 exchanges between Engineer and Analyst
+        for _ in range(1):
             with st.spinner("Engineer is formulating a solution..."):
                 engineer_resp, engineer_explanation = generate_engineer_response(
                     user_text=analyst_resp,
