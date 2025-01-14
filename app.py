@@ -38,7 +38,7 @@ def generate_engineer_response(user_text, tokenizer, model):
     """
     prompt = f"""
     User text: {user_text}
-    Provide a technical approach or solution that directly addresses the problem. Ensure your response is actionable and concise (max 5 sentences). Avoid speculative information or unrelated examples.
+    Provide a technical approach or solution that directly addresses the problem. Ensure your response is actionable and concise (max 5 sentences). Avoid speculative information, hallucinated entities, or unrelated examples.
     """
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
@@ -52,8 +52,7 @@ def generate_engineer_response(user_text, tokenizer, model):
         no_repeat_ngram_size=3,
         pad_token_id=tokenizer.pad_token_id
     )
-    explanation = "Engineer response generated based on user input."  # Keep explanations concise
-    return tokenizer.decode(outputs[0], skip_special_tokens=True), explanation
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 def generate_analyst_response(user_text, engineer_output, tokenizer, model):
     """
@@ -62,7 +61,7 @@ def generate_analyst_response(user_text, engineer_output, tokenizer, model):
     prompt = f"""
 Engineer provided the following: {engineer_output}
 
-Based on this, provide an actionable data-driven approach or solution to complement the engineer's perspective. Limit your response to one paragraph (max 5 sentences). Avoid speculative information or unrelated examples.
+Based on this, provide an actionable data-driven approach or solution to complement the engineer's perspective. Limit your response to one paragraph (max 5 sentences). Avoid speculative information, hallucinated entities, or unrelated examples.
 """
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
@@ -76,8 +75,7 @@ Based on this, provide an actionable data-driven approach or solution to complem
         no_repeat_ngram_size=3,
         pad_token_id=tokenizer.pad_token_id
     )
-    explanation = "Analyst response generated based on Engineer's output."  # Keep explanations concise
-    return tokenizer.decode(outputs[0], skip_special_tokens=True), explanation
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 def summarize_conversation(conversation):
     """
@@ -111,7 +109,7 @@ if st.button("Start/Continue Conversation"):
 
         # Engineer generates a response
         with st.spinner("Engineer is formulating a solution..."):
-            engineer_resp, engineer_explanation = generate_engineer_response(
+            engineer_resp = generate_engineer_response(
                 user_text=user_text,
                 tokenizer=tokenizerE,
                 model=modelE
@@ -123,7 +121,7 @@ if st.button("Start/Continue Conversation"):
 
         # Analyst generates a response based on engineer's output
         with st.spinner("Analyst is analyzing data and providing insights..."):
-            analyst_resp, analyst_explanation = generate_analyst_response(
+            analyst_resp = generate_analyst_response(
                 user_text=user_text,
                 engineer_output=engineer_resp,
                 tokenizer=tokenizerA,
@@ -134,28 +132,7 @@ if st.button("Start/Continue Conversation"):
         # Display Analyst response immediately
         st.markdown(f"**Analyst:** {analyst_resp}")
 
-        # Limit the conversation to 2 exchanges between Engineer and Analyst
-        for _ in range(1):
-            with st.spinner("Engineer is formulating a solution..."):
-                engineer_resp, engineer_explanation = generate_engineer_response(
-                    user_text=analyst_resp,
-                    tokenizer=tokenizerE,
-                    model=modelE
-                )
-                st.session_state.conversation.append(("Engineer", engineer_resp))
-                st.markdown(f"**Engineer:** {engineer_resp}")
-
-            with st.spinner("Analyst is analyzing data and providing insights..."):
-                analyst_resp, analyst_explanation = generate_analyst_response(
-                    user_text=engineer_resp,
-                    engineer_output=engineer_resp,
-                    tokenizer=tokenizerA,
-                    model=modelA
-                )
-                st.session_state.conversation.append(("Analyst", analyst_resp))
-                st.markdown(f"**Analyst:** {analyst_resp}")
-
-        # Generate the summary after the conversation
+        # Limit the conversation to 1 iteration
         with st.spinner("Generating the final plan..."):
             final_plan = summarize_conversation(st.session_state.conversation)
             st.session_state.conversation.append(("Summary", final_plan))
