@@ -38,13 +38,13 @@ def generate_engineer_response(user_text, tokenizer, model):
     """
     prompt = f"""
     User text: {user_text}
-    Provide a technical approach or solution that directly addresses the problem. Ensure your response is actionable and concise.
+    Provide a technical approach or solution that directly addresses the problem. Ensure your response is actionable and concise (max 5 sentences).
     """
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
         inputs["input_ids"],
         attention_mask=inputs["attention_mask"],
-        max_new_tokens=60,  # Limit to 60 new tokens
+        max_new_tokens=80,  # Limit to 80 new tokens
         temperature=0.7,
         do_sample=True,
         top_p=0.85,
@@ -62,13 +62,13 @@ def generate_analyst_response(user_text, engineer_output, tokenizer, model):
     prompt = f"""
 Engineer provided the following: {engineer_output}
 
-Based on this, provide an actionable data-driven approach or solution to complement the engineer's perspective.
+Based on this, provide an actionable data-driven approach or solution to complement the engineer's perspective. Limit your response to one paragraph.
 """
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
         inputs["input_ids"],
         attention_mask=inputs["attention_mask"],
-        max_new_tokens=60,  # Limit to 60 new tokens
+        max_new_tokens=80,  # Limit to 80 new tokens
         temperature=0.7,
         do_sample=True,
         top_p=0.85,
