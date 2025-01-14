@@ -38,34 +38,12 @@ tokenizerA, modelA = load_model_analyst()
 
 def generate_engineer_response(user_text, tokenizer, model):
     """
-    As an Engineer, generate a concise approach or solution based on user input.
+    Generate a concise technical response from the Engineer based on the user's input.
     """
     prompt = f"""
-    User text: {user_text}
-    Provide a technical approach or solution that directly addresses the problem. Ensure your response is actionable and concise (max 5 sentences). Avoid speculative information, hallucinated entities, or unrelated examples.
-    """
-    inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
-    outputs = model.generate(
-        inputs["input_ids"],
-        attention_mask=inputs["attention_mask"],
-        max_new_tokens=50,  # Restrict length
-        temperature=0.6,
-        do_sample=True,
-        top_p=0.8,
-        repetition_penalty=2.0,
-        no_repeat_ngram_size=4,
-        pad_token_id=tokenizer.pad_token_id
-    )
-    return "\n".join([f"- {line.strip()}" for line in tokenizer.decode(outputs[0], skip_special_tokens=True).split(".") if line.strip()])
+User: {user_text}
 
-def generate_analyst_response(user_text, engineer_output, tokenizer, model):
-    """
-    As an Analyst, provide an approach or solution based on user input and engineer's output.
-    """
-    prompt = f"""
-Engineer provided the following: {engineer_output}
-
-Based on this, provide an actionable data-driven approach or solution to complement the engineer's perspective. Limit your response to one paragraph (max 5 sentences). Avoid speculative information, hallucinated entities, or unrelated examples.
+Engineer: Provide a technical solution or approach that directly addresses the user's problem.
 """
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
     outputs = model.generate(
@@ -79,19 +57,42 @@ Based on this, provide an actionable data-driven approach or solution to complem
         no_repeat_ngram_size=4,
         pad_token_id=tokenizer.pad_token_id
     )
-    return "\n".join([f"- {line.strip()}" for line in tokenizer.decode(outputs[0], skip_special_tokens=True).split(".") if line.strip()])
+    return tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+
+def generate_analyst_response(engineer_output, tokenizer, model):
+    """
+    Generate a conversational response from the Analyst based on the Engineer's response.
+    """
+    prompt = f"""
+Engineer: {engineer_output}
+
+Analyst: Respond with actionable insights or complementary data-driven recommendations.
+"""
+    inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
+    outputs = model.generate(
+        inputs["input_ids"],
+        attention_mask=inputs["attention_mask"],
+        max_new_tokens=50,  # Restrict length
+        temperature=0.6,
+        do_sample=True,
+        top_p=0.8,
+        repetition_penalty=2.0,
+        no_repeat_ngram_size=4,
+        pad_token_id=tokenizer.pad_token_id
+    )
+    return tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
 
 def summarize_conversation(conversation):
     """
-    Summarize the entire conversation to produce a comprehensive plan.
+    Summarize the entire conversation to produce a cohesive and actionable plan.
     """
     summary = "### Final Plan\n"
     engineer_response = next((text for speaker, text in conversation if speaker == "Engineer"), "")
     analyst_response = next((text for speaker, text in conversation if speaker == "Analyst"), "")
 
-    summary += "- **Deployment Strategy:**\n  " + engineer_response + "\n\n"
-    summary += "- **Analyst Recommendations:**\n  " + analyst_response + "\n\n"
-    summary += "This plan integrates technical and analytical insights for actionable results."
+    summary += f"- **Engineer Perspective:**\n  {engineer_response}\n\n"
+    summary += f"- **Analyst Perspective:**\n  {analyst_response}\n\n"
+    summary += "This collaborative plan ensures a balance of technical and analytical insights."
 
     return summary
 
@@ -129,7 +130,6 @@ if st.button("Generate Responses"):
         # Analyst generates a response based on engineer's output
         with st.spinner("Analyst is analyzing data and providing insights..."):
             analyst_resp = generate_analyst_response(
-                user_text=user_text,
                 engineer_output=engineer_resp,
                 tokenizer=tokenizerA,
                 model=modelA
