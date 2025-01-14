@@ -1,6 +1,12 @@
 import streamlit as st
 
-from transformers import pipeline
+try:
+    from transformers import pipeline
+    USE_PIPELINE = True
+except ImportError:
+    from transformers import AutoTokenizer, AutoModelForCausalLM
+    import torch
+    USE_PIPELINE = False
 
 ##############################################################################
 #                          LOAD MODELS
@@ -8,38 +14,64 @@ from transformers import pipeline
 
 @st.cache_resource
 def load_model_engineer():
-    # Engineer: DeepSeek-V5 via pipeline
-    engineer_pipeline = pipeline(
-        "text-generation",
-        model="unsloth/DeepSeek-V3",
-        trust_remote_code=True
-    )
-    return engineer_pipeline
+    if USE_PIPELINE:
+        # Engineer: DeepSeek-V3 via pipeline
+        engineer_pipeline = pipeline(
+            "text-generation",
+            model="unsloth/DeepSeek-V3",
+            trust_remote_code=True
+        )
+        return engineer_pipeline
+    else:
+        # Fallback: Load model directly
+        tokenizer = AutoTokenizer.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
+        model = AutoModelForCausalLM.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
+        model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+        return tokenizer, model
 
 @st.cache_resource
 def load_model_analyst():
-    # Analyst: DeepSeek-V5 via pipeline
-    analyst_pipeline = pipeline(
-        "text-generation",
-        model="unsloth/DeepSeek-V3",
-        trust_remote_code=True
-    )
-    return analyst_pipeline
+    if USE_PIPELINE:
+        # Analyst: DeepSeek-V3 via pipeline
+        analyst_pipeline = pipeline(
+            "text-generation",
+            model="unsloth/DeepSeek-V3",
+            trust_remote_code=True
+        )
+        return analyst_pipeline
+    else:
+        # Fallback: Load model directly
+        tokenizer = AutoTokenizer.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
+        model = AutoModelForCausalLM.from_pretrained("unsloth/DeepSeek-V3", trust_remote_code=True)
+        model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+        return tokenizer, model
 
 # Load models
-engineer_pipeline = load_model_engineer()
-analyst_pipeline = load_model_analyst()
+engineer_model = load_model_engineer()
+analyst_model = load_model_analyst()
 
 ##############################################################################
 #                     ENGINEER / ANALYST GENERATION
 ##############################################################################
 
-def generate_response(prompt, pipeline_model, max_sentences=2):
+def generate_response(prompt, model, max_sentences=2):
     """
     Generate a concise response based on the provided prompt.
     """
-    outputs = pipeline_model(prompt, max_new_tokens=50, temperature=0.6, top_p=0.8)
-    response = outputs[0]["generated_text"].strip()
+    if USE_PIPELINE:
+        outputs = model(prompt, max_new_tokens=50, temperature=0.6, top_p=0.8)
+        response = outputs[0]["generated_text"].strip()
+    else:
+        tokenizer, model = model
+        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+        outputs = model.generate(
+            inputs["input_ids"],
+            max_new_tokens=50,
+            temperature=0.6,
+            top_p=0.8,
+            pad_token_id=tokenizer.pad_token_id
+        )
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
     # Limit to max_sentences by splitting and rejoining
     return " ".join(response.split(".")[:max_sentences]) + "."
 
@@ -83,7 +115,7 @@ if st.button("Generate Responses"):
             with st.spinner(f"Engineer is formulating response {turn + 1}..."):
                 engineer_resp = generate_response(
                     prompt=engineer_prompt_base,
-                    pipeline_model=engineer_pipeline
+                    model=engineer_model
                 )
                 st.session_state.conversation.append(("Engineer", engineer_resp))
 
@@ -94,7 +126,7 @@ if st.button("Generate Responses"):
             with st.spinner(f"Analyst is formulating response {turn + 1}..."):
                 analyst_resp = generate_response(
                     prompt=f"Engineer suggested: {engineer_resp}. {analyst_prompt_base}",
-                    pipeline_model=analyst_pipeline
+                    model=analyst_model
                 )
                 st.session_state.conversation.append(("Analyst", analyst_resp))
 
@@ -103,4 +135,6 @@ if st.button("Generate Responses"):
 
         # Summarize the final plan
         with st.spinner("Generating the final plan..."):
-            final_plan = summarize_conversation
+            final_plan = summarize_conversation(st.session_state.conversation)
+            st.session_state.conversation.append(("Summary", final_plan))
+            st.markdown(final_plan)
